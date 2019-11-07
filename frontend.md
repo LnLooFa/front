@@ -76,3 +76,160 @@
 			alert(123)
 		}
 	}
+### 12、Vue中属性绑定和双向数据绑定
+    v-bind:title="title"
+    简写:title="title"          
+    v-bind:绑定属性 
+    =后面不是字符串，是js表达式，实例里的变量
+    v-model //数据的双向绑定
+### 13、Vue中的计算属性和监听器
+    computed{对象}计算属性，当依赖的数据发生变化才会重新计算，如果依赖的数据没有发生变化，会用上一次计算的缓存显示
+    computed{
+        fullName：function(){
+            return this.firstName+''+this.lastName
+        }
+    }
+    watch：侦听器，监听某一个数据的变化
+    watch:{
+        key的值与data中key值相对应：function()
+    };
+### 14、Vue中v-if,v-show与v-for指令
+    1、v-if和v-show区别：展示的效果一样，但是 v-if（控制dom的存在与否）是通过删除/增加代码的方式来隐藏/显示内容；v-show（控制dom的显示与否）是通过改变css代码来显示/隐藏元素内容。
+    2、在使用上的建议：页面内如果需要频繁的显示隐藏dom，就是用v-show，这样不会删除掉代码，如果只需显示隐藏一次就使用v-if 。 
+    <body>        
+        <div id="root">          
+            <div v-if="show">hello world</div> <!-- v-if可以换成v-show -->      
+            <button @click="myClick">toggle</button> <!-- v-on的简写@ -->       
+        </div>        
+        <script>          
+            new Vue({              
+            el:"#root",             
+            data:{                  
+                show:true               
+                },              
+            methods:{                   
+            myClick:function(){                 
+            this.show=!this.show;<!-- 反复点击按钮可以让show反复显示/隐藏 -->
+            }
+            }
+            })
+        </script>
+    </body>
+    3、v-for做页面上循环内容的展示 :key可以提升每一项渲染的性能，但是要求:key要求:key值也就是每一项循环的内容都不同。
+    <body>        
+    <div id="root">          
+        <ul>              
+        <!-- <li v-for="item of list" :key="item">{{item}}</li> 这句循环list内容，把每一次循环显示在item里-->               
+        <li v-for="(item,index) of list" :key="index">{{item}}</li><!-- 这句优化上面的:key因为key值不能相同，每一次循环列表得到item和数组下标index，将key值换成index值就不会有相同 -->          
+        </ul>     
+    </div>        
+    <script>          
+        new Vue({              
+        el:"#root",             
+        data:{                  
+            list:[1,2,3]                
+        }               
+     })        
+    </script>
+    </body>
+### 15、TodoList功能
+    通过this调用vue实例的data属性
+    list.push往列表里添加值
+    如下this.inputValue=''让提交后input框清空
+
+    <body>
+    <div id="root">
+	<div>
+		<input v-model="inputValue" />
+		<button @click="handleClick">提交</button>
+	</div>
+	<ul>
+		<li v-for="(item,index) of list" :key="index">{{item}}</li>
+	</ul>
+    </div>
+    <script type="text/javascript">
+        new Vue({
+            el:"#root",
+            data:{
+                inputValue:'hello',
+                list:[]
+            },
+            methods:{
+                handleClick:function(){
+                    this.list.push(this.inputValue);
+                    this.inputValue='';
+                }
+            }
+        })
+    </script>
+    </body>
+### 16、todolist组件拆分
+
+    页面内容过于复杂，可将组件拆分，可定义全局组件或局部组件：
+    1、全局组件：在页面任何地方都能使用
+    //定义全局组件
+    Vue.component("todo-item", {
+        template: "<label>我是全局组件</label>"
+    });
+    new Vue({
+        el: "#root",
+    });
+    //使用全局组件
+    <div id="root">
+        <todo-item></todo-item>
+    </div>
+    2、局部组件：要在外层Vue实例里进行注册
+    //定义局部组件
+    var todoItem = {
+        template: "<label>我是局部组件</label>"
+    }
+    new Vue({
+        el: "#root1",
+        components: { //局部组件：要在挂载点(它的外层Vue实例，即此处的root1)进行注册
+            "todo-item-1": todoItem
+        }
+    });
+    //使用局部组件
+    <div id="root1">
+        <todo-item-1></todo-item-1><!--局部组件：只能在挂载点底下使用-->
+        <todo-item></todo-item><!--全局组件：在页面任何地方都能使用-->
+    </div>
+    组件拆分之后的传参问题：外部(html页面)可以通过自定义属性的形式传参，组件要定义props[]接收属性
+    //父组件向子组件传递数据：通过属性
+    Vue.component("todo-item-2", {
+        props: ["content", "index"],//接收从外部传进来的属性content、index
+        template: "<li>{{index+1}}、{{content}}</li>"
+    });
+    new Vue({
+        el: "#root2",
+        data: {
+            inputValue: "",
+            list: []
+        },
+        methods: {
+            submitClick: function () {
+                this.list.push(this.inputValue);
+                this.inputValue = "";
+            }
+        }
+    })
+    <div id="root2">
+        <div>
+            <input v-model="inputValue" />
+            <button @click="submitClick">提交</button>
+        </div>
+        <ul> <!--自定义属性content、index-->
+            <todo-item-2 v-for='(item,index) of list'
+                         :key="index"
+                         :content="item"
+                         :index="index" 
+            >
+            </todo-item-2>
+        </ul>
+    </div>
+### 17、实例与组件关系
+    每一个组件都是一个Vue的组件实例，实例的模板里使用一个小的组件。
+    每一个组件也可以写methods，data。因此每一个组件都是一个Vue的实例。
+
+    如果不定义模板，就会根据挂载点下面的DOM标签标签全部内容当做模板。
+### 18、todolist删除功能
